@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Finance Report</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-yellow: #ffee00;
+            --bright-yellow: #fff200;
+            --neru-black: #1a1a1a;
+            --bg-dark: #121212;
+            --text-light: #ffffff;
+            --in-color: #2ecc71;
+            --out-color: #e74c3c;
+            --btn-gray: #333333;
+        }
+
+        html, body { 
+            margin: 0; 
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow-x: hidden; 
+            overscroll-behavior-y: contain;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: var(--bg-dark); 
+            color: var(--text-light); 
+        }
+
+        h1, .nav-item, label, #displaySaldo {
+            font-weight: 900 !important;
+        }
+
+        .header-container { 
+            width: 100%; padding: 40px 0; display: flex; flex-direction: column; 
+            justify-content: center; align-items: center; position: relative; 
+            overflow: hidden; min-height: 120px; 
+        }
+        
+        .header-container::before { 
+            content: ''; position: absolute; top: 0; left: 0; width: 200%; height: 100%; 
+            background: linear-gradient(to right, #ffee00, #ffcc00, #ffee00); 
+            background-size: 200% 100%; animation: gradientMove 8s linear infinite; z-index: -1; 
+        }
+        
+        @keyframes gradientMove { 0% { background-position: 0% 0%; } 100% { background-position: -200% 0%; } }
+
+        .header-content { text-align: center; z-index: 2; }
+        .header-content h1 { 
+            color: black; font-size: 1.8em; margin: 0; 
+            letter-spacing: 2px; font-weight: 900;
+        }
+
+        #displaySaldo {
+            display: inline-block; margin-top: 10px; color: black; font-weight: 900; 
+            font-size: 1.1em; background: rgba(255,255,255,0.3); 
+            padding: 5px 15px; border-radius: 20px;
+        }
+
+        .category-nav {
+            display: flex; background: var(--neru-black); position: sticky; top: 0; z-index: 100;
+            border-bottom: 2px solid #333;
+        }
+        .nav-item {
+            flex: 1; padding: 18px 10px; text-align: center; font-weight: 900; cursor: pointer;
+            transition: 0.3s; color: #666; font-size: 0.85em; letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+        .nav-item.active { color: var(--primary-yellow); border-bottom: 4px solid var(--primary-yellow); }
+
+        .view-slider {
+            display: flex; width: 200%; transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            touch-action: pan-y;
+        }
+        .view-page { width: 50%; box-sizing: border-box; }
+
+        .main-card {
+            background: var(--neru-black); margin: 20px 15px 30px 15px;
+            padding: 25px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            position: relative; z-index: 10; border-top: 5px solid var(--primary-yellow);
+        }
+
+        .type-selector { 
+            display: flex; background: var(--btn-gray); 
+            padding: 5px; border-radius: 15px; margin-bottom: 25px; position: relative;
+            overflow: hidden;
+        }
+        
+        .type-btn {
+            flex: 1; padding: 14px; text-align: center; border-radius: 12px;
+            cursor: pointer; font-family: 'Inter', sans-serif;
+            font-weight: 900 !important; font-size: 0.85em; z-index: 2;
+            transition: color 0.3s ease; color: #aaa;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .type-btn.active { color: white; }
+        
+        .selection-indicator {
+            position: absolute; width: calc(50% - 5px); height: calc(100% - 10px);
+            top: 5px; border-radius: 10px; z-index: 1; display: none;
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), background 0.3s ease;
+        }
+
+        .active-in .selection-indicator { display: block; transform: translateX(0); background: var(--in-color); }
+        .active-out .selection-indicator { display: block; transform: translateX(100%); background: var(--out-color); }
+
+        .input-group { margin-bottom: 18px; }
+        label { display: block; margin-bottom: 8px; color: var(--primary-yellow); font-size: 0.8em; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; }
+        
+        input, textarea {
+            width: 100%; padding: 14px; border-radius: 12px; border: 2px solid #333;
+            background: #252525; color: white; box-sizing: border-box; font-size: 16px;
+            font-family: 'Inter', sans-serif; font-weight: 700;
+        }
+
+        input:focus, textarea:focus { outline: none; border-color: var(--primary-yellow); }
+
+        .submit-btn {
+            width: 100%; padding: 18px; background: var(--primary-yellow);
+            color: black; border: none; border-radius: 12px;
+            font-family: 'Inter', sans-serif;
+            font-weight: 900 !important; font-size: 1.1em; cursor: pointer;
+            text-transform: uppercase; letter-spacing: 2px;
+            margin-top: 10px;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 4px 0 #b3a700;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+
+        .submit-btn:active { transform: translateY(2px); box-shadow: 0 2px 0 #b3a700; }
+
+        .history-item {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 12px 15px; cursor: pointer; border-bottom: 1px solid #333; color: #ccc;
+        }
+        .history-item:hover { background: #333; color: var(--primary-yellow); }
+        .delete-history { color: #e74c3c; padding: 5px 10px; font-weight: 900; font-size: 18px; }
+
+        .empty-state { text-align: center; padding: 50px 20px; color: #555; }
+        .empty-state i { font-size: 4em; margin-bottom: 15px; }
+
+        .triangle-container { 
+            position: absolute; clip-path: polygon(50% 0%, 0% 100%, 100% 100%); 
+            opacity: 0.8; z-index: 0; pointer-events: none; 
+        }
+
+        @keyframes triangleMove { 
+            0% { transform: translate(0, 0) scale(0.5) rotate(0deg); opacity: 0; } 
+            50% { transform: translate(50px, -50px) scale(1) rotate(180deg); opacity: 0.6; } 
+            100% { transform: translate(100px, 100px) scale(0.5) rotate(360deg); opacity: 0; } 
+        }
+
+        .click-particle { 
+            position: absolute; clip-path: polygon(50% 0%, 0% 100%, 100% 100%); 
+            z-index: 9999; pointer-events: none; 
+        }
+    </style>
+</head>
+<body>
+
+<header class="header-container" id="header">
+    <div class="header-content">
+        <h1>MY FINANCIAL REPORT</h1>
+        <div id="displaySaldo">Loading Saldo...</div>
+    </div>
+</header>
+
+<nav class="category-nav">
+    <div class="nav-item active" id="tabKirim" onclick="switchPage(0)">KIRIM LAPORAN</div>
+    <div class="nav-item" id="tabLihat" onclick="switchPage(1)">LIHAT CATATAN</div>
+</nav>
+
+<div class="view-slider" id="mainSlider">
+    
+    <div class="view-page" id="pageKirim">
+        <div class="main-card">
+            <div class="type-selector" id="typeSelector">
+                <div class="selection-indicator" id="indicator"></div>
+                <div class="type-btn" id="btnIn" onclick="setType('pemasukan')">PEMASUKAN</div>
+                <div class="type-btn" id="btnOut" onclick="setType('pengeluaran')">PENGELUARAN</div>
+            </div>
+
+            <div style="display: flex; gap: 12px;">
+                <div class="input-group" style="flex: 1;">
+                    <label>Tanggal</label>
+                    <input type="date" id="tgl">
+                </div>
+                <div class="input-group" style="flex: 1;">
+                    <label>Waktu</label>
+                    <input type="time" id="jam">
+                </div>
+            </div>
+
+            <div class="input-group" style="position: relative;">
+                <label>Jenis Laporan</label>
+                <input type="text" id="jenis" placeholder="Ketik jenis..." autocomplete="off" onfocus="showHistory()" oninput="filterHistory()">
+                <div id="custom-history-dropdown" style="display: none; position: absolute; width: 100%; background: #252525; border: 1px solid #444; border-radius: 10px; z-index: 100; max-height: 200px; overflow-y: auto; margin-top: 5px;"></div>
+            </div>
+
+            <div class="input-group">
+                <label>Nominal</label>
+                <input type="text" id="nominal" placeholder="0" inputmode="numeric" pattern="[0-9]*">
+            </div>
+
+            <div class="input-group">
+                <label>Keterangan</label>
+                <textarea id="keterangan" rows="2" placeholder="Detail catatan..."></textarea>
+            </div>
+
+            <button class="submit-btn" id="btnSimpan" onclick="kirimData()">SIMPAN DATA</button>
+        </div>
+    </div>
+
+    <div class="view-page" id="pageLihat">
+        <div class="main-card">
+            <div class="empty-state">
+                <i class="fas fa-folder-open"></i>
+                <h3 style="font-weight: 900;">LIHAT CATATAN</h3>
+                <p>Fitur ini sedang dalam pengembangan.</p>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    let selectedType = '';
+    let currentPage = 0;
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbybtZDeQstxQLH-QAPXbxhM0Tq8DbSZ0uspkZJqbutKyDjSPvhxg3A6R57GZL-scefR/exec"; 
+    const colorPalette = ["#ffee00", "#ffffff", "#ffcc00", "#e0e0e0"];
+    const header = document.getElementById('header');
+
+    let touchstartX = 0;
+    let touchendX = 0;
+    
+    document.addEventListener('touchstart', e => { touchstartX = e.changedTouches[0].screenX; });
+    document.addEventListener('touchend', e => { touchendX = e.changedTouches[0].screenX; handleGesture(); });
+
+    function handleGesture() {
+        if (touchendX < touchstartX - 70) switchPage(1);
+        if (touchendX > touchstartX + 70) switchPage(0);
+    }
+
+    function switchPage(index) {
+        currentPage = index;
+        const slider = document.getElementById('mainSlider');
+        const tabKirim = document.getElementById('tabKirim');
+        const tabLihat = document.getElementById('tabLihat');
+
+        if (index === 0) {
+            slider.style.transform = 'translateX(0%)';
+            tabKirim.classList.add('active');
+            tabLihat.classList.remove('active');
+        } else {
+            slider.style.transform = 'translateX(-50%)';
+            tabLihat.classList.add('active');
+            tabKirim.classList.remove('active');
+        }
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    document.getElementById('nominal').addEventListener('input', function(e) {
+        let value = this.value.replace(/\D/g, "");
+        if (value) { this.value = parseInt(value).toLocaleString('id-ID'); }
+    });
+
+    async function updateSaldoHeader() {
+        try {
+            const response = await fetch(WEB_APP_URL);
+            const data = await response.json();
+            document.getElementById('displaySaldo').innerText = "Saldo: " + data.formattedSaldo;
+        } catch (e) {
+            document.getElementById('displaySaldo').innerText = "Saldo: Rp 0";
+        }
+    }
+
+    function showHistory() {
+        const history = JSON.parse(localStorage.getItem('jenisHistory') || "[]");
+        const dropdown = document.getElementById('custom-history-dropdown');
+        if (history.length === 0) { dropdown.style.display = 'none'; return; }
+        dropdown.innerHTML = history.map((item, index) => `
+            <div class="history-item">
+                <span onclick="selectHistory('${item}')" style="font-weight:700">${item}</span>
+                <div class="delete-history" onclick="deleteHistoryItem(event, ${index})">&times;</div>
+            </div>
+        `).join('');
+        dropdown.style.display = 'block';
+    }
+
+    function selectHistory(val) {
+        document.getElementById('jenis').value = val;
+        document.getElementById('custom-history-dropdown').style.display = 'none';
+    }
+
+    function deleteHistoryItem(event, index) {
+        event.stopPropagation();
+        let history = JSON.parse(localStorage.getItem('jenisHistory') || "[]");
+        history.splice(index, 1);
+        localStorage.setItem('jenisHistory', JSON.stringify(history));
+        showHistory();
+    }
+
+    function filterHistory() {
+        const val = document.getElementById('jenis').value.toLowerCase();
+        const items = document.querySelectorAll('.history-item');
+        let hasVisible = false;
+        items.forEach(item => {
+            const text = item.querySelector('span').innerText.toLowerCase();
+            if (text.includes(val)) { item.style.display = 'flex'; hasVisible = true; }
+            else { item.style.display = 'none'; }
+        });
+        document.getElementById('custom-history-dropdown').style.display = hasVisible ? 'block' : 'none';
+    }
+
+    document.addEventListener('click', function(e) {
+        const dropdown = document.getElementById('custom-history-dropdown');
+        const input = document.getElementById('jenis');
+        if (e.target !== input && !dropdown.contains(e.target)) { dropdown.style.display = 'none'; }
+    });
+
+    window.onload = () => {
+        const now = new Date();
+        document.getElementById('tgl').value = now.toISOString().split('T')[0];
+        document.getElementById('jam').value = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+        for (let i = 0; i < 20; i++) createRandomTriangle();
+        updateSaldoHeader();
+    };
+
+    function setType(t) {
+        const container = document.getElementById('typeSelector');
+        const indicator = document.getElementById('indicator');
+        const bIn = document.getElementById('btnIn');
+        const bOut = document.getElementById('btnOut');
+        indicator.style.transition = selectedType === '' ? 'none' : 'transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), background 0.3s ease';
+        selectedType = t;
+        if(t === 'pemasukan') { container.className = 'type-selector active-in'; bIn.classList.add('active'); bOut.classList.remove('active'); }
+        else { container.className = 'type-selector active-out'; bOut.classList.add('active'); bIn.classList.remove('active'); }
+    }
+
+    function resetForm() {
+        document.getElementById('nominal').value = '';
+        document.getElementById('keterangan').value = '';
+        document.getElementById('jenis').value = '';
+        selectedType = '';
+        document.getElementById('typeSelector').className = 'type-selector';
+        document.getElementById('btnIn').classList.remove('active');
+        document.getElementById('btnOut').classList.remove('active');
+    }
+
+    async function kirimData() {
+        const nominalStr = document.getElementById('nominal').value.replace(/\./g, "");
+        const jenis = document.getElementById('jenis').value;
+
+        if(!selectedType || !nominalStr || !jenis) {
+            alert("Harap lengkapi data!"); 
+            return;
+        }
+
+        const btn = document.getElementById('btnSimpan');
+        const originalText = btn.innerText;
+        btn.innerText = "MENGIRIM...";
+        btn.disabled = true;
+
+        const formData = new URLSearchParams();
+        formData.append('tanggal', document.getElementById('tgl').value);
+        formData.append('waktu', document.getElementById('jam').value);
+        formData.append('jenis', jenis);
+        formData.append('keterangan', document.getElementById('keterangan').value);
+        formData.append('nominal', nominalStr);
+        formData.append('tipe', selectedType);
+
+        fetch(WEB_APP_URL, {
+            method: "POST",
+            mode: "no-cors", 
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: formData.toString()
+        });
+
+        alert("Data Terkirim!");
+        let history = JSON.parse(localStorage.getItem('jenisHistory') || "[]");
+        if (jenis && !history.includes(jenis)) {
+            history.push(jenis);
+            localStorage.setItem('jenisHistory', JSON.stringify(history));
+        }
+        resetForm();
+
+        setTimeout(async () => {
+            await updateSaldoHeader(); 
+            btn.innerText = originalText;
+            btn.disabled = false;
+        }, 3000); 
+    }
+
+    function createRandomTriangle() {
+        const triangle = document.createElement('div');
+        triangle.classList.add('triangle-container');
+        const size = Math.random() * 20 + 10;
+        triangle.style.width = `${size}px`; triangle.style.height = `${size}px`;
+        triangle.style.left = `${Math.random() * header.offsetWidth}px`;
+        triangle.style.top = `${Math.random() * header.offsetHeight}px`;
+        triangle.style.background = colorPalette[Math.floor(Math.random() * colorPalette.length)];
+        triangle.style.animation = `triangleMove ${Math.random() * 10 + 5}s ease-in-out infinite`;
+        header.appendChild(triangle);
+    }
+
+    document.addEventListener('click', (e) => {
+        for (let i = 0; i < 5; i++) {
+            const p = document.createElement('div');
+            p.classList.add('click-particle');
+            const size = Math.random() * 15 + 5;
+            p.style.width = `${size}px`; p.style.height = `${size}px`;
+            p.style.background = colorPalette[Math.floor(Math.random() * colorPalette.length)];
+            p.style.left = `${e.pageX}px`; p.style.top = `${e.pageY}px`;
+            document.body.appendChild(p);
+            p.animate([{ transform: `translate(0, 0) scale(1)`, opacity: 1 }, { transform: `translate(${Math.random() * 100 - 50}px, ${Math.random() * 100 - 50}px) scale(0)`, opacity: 0 }], { duration: 500 });
+            setTimeout(() => p.remove(), 500);
+        }
+    });
+</script>
+</body>
+</html>
