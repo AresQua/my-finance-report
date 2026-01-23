@@ -346,11 +346,6 @@
     document.addEventListener('touchstart', e => { touchstartX = e.changedTouches[0].screenX; });
     document.addEventListener('touchend', e => { touchendX = e.changedTouches[0].screenX; handleGesture(); });
 
-    function handleGesture() {
-        if (touchendX < touchstartX - 70) switchPage(1);
-        if (touchendX > touchstartX + 70) switchPage(0);
-    }
-
     function switchPage(index) {
         currentPage = index;
         const slider = document.getElementById('mainSlider');
