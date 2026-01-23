@@ -632,7 +632,7 @@
             fullData = json.allData;
             renderCanggih([...fullData].reverse());
             setTimeout(() => {
-                updateChartPeriod('1D'); 
+                updateChartPeriod('1W'); 
             }, 100);
             populateJenisFilter(fullData);
         } catch (e) { tbody.innerHTML = '<tr><td colspan="7" style="color:red; text-align:center;">Gagal koneksi.</td></tr>'; }
@@ -717,3 +717,4 @@
 </body>
 
 </html>
+
