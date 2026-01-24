@@ -269,22 +269,21 @@
         <div class="main-card" style="padding: 10px; overflow-x: auto;">
             <div class="main-card-2" style="padding: 15px; margin-bottom: 15px;">
                 <div style="display: flex; gap: 5px; margin-bottom: 15px; overflow-x: auto; padding-bottom: 5px;">
-                    <button class="p-btn" onclick="updateChartPeriod('1D')">1D</button>
-                    <button class="p-btn" onclick="updateChartPeriod('1W')">1W</button>
-                    <button class="p-btn" onclick="updateChartPeriod('1M')">1M</button>
-                    <button class="p-btn" onclick="updateChartPeriod('3M')">3M</button>
-                    <button class="p-btn" onclick="updateChartPeriod('1Y')">1Y</button>
-                    <button class="p-btn" onclick="updateChartPeriod('CUSTOM', this)">Custom</button>
+                    <button class="p-btn" onclick="updateChartPeriod('1D', this)">1D</button>
+                    <button class="p-btn" onclick="updateChartPeriod('1W', this)">1W</button>
+                    <button class="p-btn" onclick="updateChartPeriod('1M', this)">1M</button>
+                    <button class="p-btn" onclick="updateChartPeriod('3M', this)">3M</button> <button class="p-btn" onclick="updateChartPeriod('1Y', this)">1Y</button>
+                    <button class="p-btn" onclick="updateChartPeriod('CUSTOM', this)">CUSTOM</button>
                 </div>
 
-                <div id="customPeriodBox" style="display: none; gap: 10px; margin-top: 10px; background: rgba(255,255,255,0.05); padding: 10px; border-radius: 10px;">
+                <div id="customPeriodBox" style="display: none; gap: 10px; margin-top: 10px; background: rgba(255,255,255,0.05); padding: 10px; border-radius: 10px; margin-bottom: 10px;">
                     <div style="flex: 1;">
-                        <label style="font-size: 9px;">DARI:</label>
-                        <input type="date" id="chartStart" onchange="updateChartPeriod('CUSTOM')">
+                        <label style="font-size: 9px; color: #888;">DARI:</label>
+                        <input type="date" id="chartStart" onchange="updateChartPeriod('CUSTOM')" style="font-size: 11px; padding: 5px;">
                     </div>
                     <div style="flex: 1;">
-                        <label style="font-size: 9px;">SAMPAI:</label>
-                        <input type="date" id="chartEnd" onchange="updateChartPeriod('CUSTOM')">
+                        <label style="font-size: 9px; color: #888;">SAMPAI:</label>
+                        <input type="date" id="chartEnd" onchange="updateChartPeriod('CUSTOM')" style="font-size: 11px; padding: 5px;">
                     </div>
                 </div>
                 
@@ -574,54 +573,49 @@
     }
 
     function updateChartPeriod(period, element) {
-        // 1. Atur UI Tombol
+        // Atur tombol aktif
         document.querySelectorAll('.p-btn').forEach(b => b.classList.remove('active'));
         if (element) element.classList.add('active');
 
-        // 2. Tampilkan/Sembunyikan Box Tanggal Custom
+        // Show/Hide box custom
         const customBox = document.getElementById('customPeriodBox');
         customBox.style.display = (period === 'CUSTOM') ? 'flex' : 'none';
 
-        let chartItems = [];
         const now = new Date();
         let startDate = new Date();
-        let endDate = new Date(); // Default sampai hari ini
+        let endDate = new Date();
 
-        if (period === 'CUSTOM') {
-            const startVal = document.getElementById('chartStart').value;
-            const endVal = document.getElementById('chartEnd').value;
-            
-            if (!startVal || !endVal) return; // Jangan update kalau tanggal belum lengkap
-
-            startDate = new Date(startVal);
-            startDate.setHours(0,0,0,0);
-            
-            endDate = new Date(endVal);
-            endDate.setHours(23,59,59,999);
-
-            chartItems = fullData.filter(r => {
-                const d = new Date(r[0]);
-                return d >= startDate && d <= endDate;
-            });
-        } else {
-            // Logika periode standar (1D, 1W, dll)
-            if (period === '1D') startDate.setHours(0,0,0,0);
-            else if (period === '1W') startDate.setDate(now.getDate() - 7);
-            else if (period === '1M') startDate.setMonth(now.getMonth() - 1);
-            else if (period === '1Y') startDate.setFullYear(now.getFullYear() - 1);
-
-            chartItems = fullData.filter(r => new Date(r[0]) >= startDate);
+        if (period === '1D') {
+            startDate.setHours(0, 0, 0, 0);
+        } else if (period === '1W') {
+            startDate.setDate(now.getDate() - 7);
+        } else if (period === '1M') {
+            startDate.setMonth(now.getMonth() - 1);
+        } else if (period === '3M') {
+            startDate.setMonth(now.getMonth() - 3); // LOGIKA 3 BULAN
+        } else if (period === '1Y') {
+            startDate.setFullYear(now.getFullYear() - 1);
+        } else if (period === 'CUSTOM') {
+            const sVal = document.getElementById('chartStart').value;
+            const eVal = document.getElementById('chartEnd').value;
+            if (!sVal || !eVal) return; // Tunggu sampai kedua tanggal diisi
+            startDate = new Date(sVal);
+            endDate = new Date(eVal);
+            endDate.setHours(23, 59, 59);
         }
 
-        // Map data untuk Chart (pastikan urutan lama ke baru untuk grafik)
-        const chartData = chartItems.map(r => ({
+        // Filter data (Gunakan urutan asli spreadsheet agar alur saldo di grafik benar)
+        const filtered = fullData.filter(r => {
+            const d = new Date(r[0]);
+            return d >= startDate && d <= endDate;
+        });
+
+        const chartData = filtered.map(r => ({
             tgl: r[0].split('-').slice(1).reverse().join('/'),
             saldo: parseFloat(r[6].replace(/\./g, '')) || 0
         }));
 
-        if (chartData.length > 0) {
-            initChart(chartData);
-        }
+        if (chartData.length > 0) initChart(chartData);
     }
 
     // Tambahkan variabel global untuk menyimpan data filter
