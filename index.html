@@ -491,7 +491,7 @@
             body: formData.toString()
         });
 
-        alert("Data Terkirim!");
+        showToast("Data Terkirim!");
         let history = JSON.parse(localStorage.getItem('jenisHistory') || "[]");
         if (jenis && !history.includes(jenis)) {
             history.push(jenis);
@@ -718,8 +718,25 @@
         if (i === 1) loadTableData();
 };
 
+function showToast(msg) {
+    const t = document.createElement("div");
+    t.innerText = msg;
+    t.style.position = "fixed";
+    t.style.bottom = "50%";
+    t.style.left = "50%";
+    t.style.transform = "translateX(-50%)";
+    t.style.background = "#333";
+    t.style.color = "#fff";
+    t.style.padding = "12px 20px";
+    t.style.borderRadius = "10px";
+    t.style.zIndex = "9999";
+
+    document.body.appendChild(t);
+
+    setTimeout(() => t.remove(), 2000);
+}
+
 </script>
 </body>
 
 </html>
-
